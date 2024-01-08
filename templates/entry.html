@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Add a line to a map using a GeoJSON source</title>
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+		<link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet">
+		<script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+		<style>
+		body { margin: 0; padding: 0; }
+		#map { position: relative; height:60vh;       width: 80vw; border: 5px solid black;
+		left:50%;
+		transform:translateX(-50%);
+    margin-top:50px;
+		}
+		.one {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-1.png');  
+		}
+		.two {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-2.png');  
+		}
+		.three {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-3.png');  
+		}
+		.four {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-4.png');  
+		}
+		.five {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-5.png');  
+		}
+		.six {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-6.png');  
+		}
+		.seven {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-7.png');  
+		}.eight {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-8.png');  
+		}
+		.nine {
+			/* <a href="https://www.flaticon.com/free-icons/marker" title="marker icons">Marker icons created by I3oundless - Flaticon</a> */
+			background-image: url('/static/marker-9.png');  
+		}
+		.marker {
+			background-size: cover;
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			cursor: pointer;
+			display:none;
+			}
+		  #qrcode{
+        position:fixed;
+        bottom: 0;
+        right: 0;
+        width: 140px;
+        height:140px; 
+        z-index:9999;
+      }
+		</style>
+	</head>
+	<body>
+    <img src = "static/qrcode.png" id = "qrcode">
+	<h1>CID Math Project Website</h1>
+	<table>
+		<tr>
+			{% for index in index_list %}
+			<td><label for = "truck{{index}}">Truck {{index}}</label>
+				<input class = "pointcheckboxes" type="checkbox" id = "truck{{index}}">
+			</td>
+			{% endfor %}
+		</tr>
+		<tr>
+			<td colspan = "5">Select Algorithm:
+				<select name="algorithm" onchange="changeEvent(this)">
+					<option value = "greedy1">Greedy(Distance)</option>
+					<option value = "greedy2">Greedy(Fullness)</option>
+					<option value = "ouralgo1">Our Algo Version 1 (Fullness/Distance)</option>
+					<option value = "ouralgo2">Our Algo Version 2 (Fullness/Distance**3)</option>
+					<option value = "ouralgo3">Our Algo Version 3 (Turning Back)</option>
+					<option value = "ouralgo4">Our Algo Version 4 (Fullness)</option>
+				</select>
+			</td>
+		</tr>	
+	<tr><td>
+  </table>
+	<div id="map"></div>
+	<script>
+		var todisplay = "greedy1"
+		var colour_list = ["#FF0000", "#00FF00", "#0000FF", "#000000", "#B303FF"]
+		var marker_class_list = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+		var pointcheckboxes = document.getElementsByClassName("pointcheckboxes")
+		var number = 0
+		function changeEvent(obj){
+			for (var i of marker_class_list){
+				var elements = document.querySelectorAll("."+i+todisplay)
+				for (var j of elements){
+					j.style.display = "none"
+				}
+			}
+			for (var ele of pointcheckboxes){
+				map.setLayoutProperty(
+				marker_class_list[ele.idx]+todisplay,
+				'visibility',
+				'none'
+				);
+			}
+			todisplay = obj.value
+			for (var ele of pointcheckboxes){
+				if (ele.checked){
+					to_display = document.getElementsByClassName(marker_class_list[ele.idx]+todisplay)
+					for (var ele2 of to_display){
+						ele2.style.display = "initial" 
+					}
+					map.setLayoutProperty(
+						marker_class_list[ele.idx]+todisplay,
+						'visibility',
+						'visible'
+						);
+				}
+			}
+			
+		}
+		for (var ele of pointcheckboxes){
+			ele.idx = number
+			ele.oninput = function(){
+				to_display = document.getElementsByClassName(marker_class_list[this.idx]+todisplay)
+				if (this.checked == true){
+					for (var ele2 of to_display){
+						ele2.style.display = "initial" 
+						console.log(ele2)
+					}
+					map.setLayoutProperty(
+						marker_class_list[this.idx]+todisplay,
+						'visibility',
+						'visible'
+						);
+				}
+				else{
+					for (var ele2 of to_display){
+						ele2.style.display = "none" 
+					}
+					map.setLayoutProperty(
+						marker_class_list[this.idx]+todisplay,
+						'visibility',
+						'none'
+						);
+				}
+			}
+			number++
+		}
+	mapboxgl.accessToken = 'pk.eyJ1Ijoicm95YWxhZHZpc29yMjYiLCJhIjoiY2t1eTV0b3pkNWkwODMwcGhxcGI5YXg1MyJ9.Rp7mVqicDLnV_gRnKWa2JQ';
+	const map = new mapboxgl.Map({
+	container: 'map',
+	style: 'mapbox://styles/mapbox/streets-v11',
+	center: [103.819800,1.352100],     //<----- CENTER NEEDS TO CHANGE ACCORDINGLY
+	zoom: 10
+	});
+	{% for algo in lst_of_coords %}
+	{% for stuff in range (lst_of_coords[algo]|length)%}
+	map.on('load', () => {
+	map.addSource(marker_class_list[{{stuff}}]+"{{algo}}", {
+	'type': 'geojson',
+	'data': {
+	'type': 'Feature',
+	'properties': {},                      
+	'geometry': {
+	'type': 'LineString',
+	'coordinates': 
+	{{lst_of_coords[algo][stuff]}}                           //<------------- VARIABLE USED HERE, exchange {{my_coords}} with the list in the main.py at the bottom
+	}
+	}
+	});
+	map.addLayer({
+	'id': marker_class_list[{{stuff}}]+"{{algo}}",
+	'type': 'line',
+	'source': marker_class_list[{{stuff}}]+"{{algo}}",
+	'layout': {
+	'line-join': 'round',
+	'line-cap': 'round',
+	'visibility': 'none'
+	},
+	'paint': {
+	'line-color': colour_list[{{stuff}}],
+	'line-width': 1
+	}
+	});
+	});
+	{% endfor%}
+	{% endfor%}
+
+	// ABOVE IS LINE(PATH OF TRUCK)
+
+	//BELOW IS EACH TRUCK PATH 1-2-3-4
+
+
+	// {% for coords in lst_of_coords %}
+	// var marker_list = ['marker one', 'marker two', 'marker three', 'marker four', 'marker five', 'marker six', 'marker seven', 'marker eight', 'marker nine']
+	// var marker_number = 0
+	// {% for i in index_list %}														// <---- LIST OF INDEXES	
+	// 	var geojson = {
+	// 			type: 'FeatureCollection',
+	// 			features: [
+	// 				{
+	// 				type: 'Feature',
+	// 				geometry: {
+	// 					type: 'Point',
+	// 					coordinates: {{coords[i]}}
+	// 				},
+	// 				properties: {
+	// 					title: 'Mapbox',
+	// 					description: 'Washington, D.C.'
+	// 				}
+	// 				}
+	// 			]
+	// 			};
+	// 	for (const feature of geojson.features) {
+	// 	const el = document.createElement('div');
+	// 	el.className = marker_list[marker_number];
+	// 	new mapboxgl.Marker(el)
+	// 	.setLngLat(feature.geometry.coordinates)
+	// 	.addTo(map)
+	// 	.setPopup(
+	// 			new mapboxgl.Popup({ offset: 25 })
+	// 				.setHTML(
+	// 					)						
+	// 				)	;
+	// }
+	// 	marker_number += 1
+	// {% endfor %}
+	// {% endfor %}
+
+	//ABOVE IS EACH TRUCK PATH 1-2-3-4
+
+
+	// BELOW IS EACH TRUCK ONE CUSTOM PNG FOR NODES
+	var i = 0
+	var coord_idx = 0
+	var details = {{details|tojson|safe}}
+	var marker_list = ['marker one', 'marker two', 'marker three', 'marker four', 'marker five', 'marker six', 'marker seven', 'marker eight', 'marker nine']
+	{% for algo in lst_of_coords %}
+		{% for coords in lst_of_coords[algo] %}
+			{% for i in range(coords|length) %}	// <---- LIST OF INDEXES	
+			var coord_idx = 0			
+			var geojson = {
+					type: 'FeatureCollection',
+					features: [
+						{
+						type: 'Feature',
+						geometry: {
+							type: 'Point',
+							coordinates: {{coords[i]}}
+						},
+
+						}
+					]
+					};
+			for (const feature of geojson.features) {
+				const el = document.createElement('div');
+				el.className = marker_list[i]+" " +marker_list[i].split(" ")[1]+"{{algo}}";
+				new mapboxgl.Marker(el)
+				.setLngLat(feature.geometry.coordinates)
+				.addTo(map)
+				.setPopup(
+						new mapboxgl.Popup({ offset: 25 })
+							.setHTML(
+								`<h5 style = "margin:0;">${details['{{algo}}'][i][coord_idx][0]}</h5><h5 style = "margin:0;">${details['{{algo}}'][i][coord_idx][2]}</h5><h5 style = "margin:0;">${details['{{algo}}'][i][coord_idx][1]}</h5>`
+								)						
+							);
+							
+				coord_idx++
+			}
+			{% endfor %}
+			i += 1
+		{% endfor %}
+		i = 0
+	{% endfor %}
+
+	// add markers to map
+	// for (const feature of geojson.features) {
+	// // create a HTML element for each feature
+	// const el = document.createElement('div');
+	// el.className = 'marker one';
+
+	// // make a marker for each feature and add to the map
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker two';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker three';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of different.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker four';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker five';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker six';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker seven';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker eight';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// for (const feature of geojson.features) {
+	// const el = document.createElement('div');
+	// el.className = 'marker nine';
+	// new mapboxgl.Marker(el).setLngLat(feature.geometry.coordinates).addTo(map);
+	// }
+	// DEFAULT MARKER
+	
+	</script>
+	</td></tr>
+	</table>
+	</body>
+</html>

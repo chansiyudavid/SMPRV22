@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Add a line to a map using a GeoJSON source</title>
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+		<link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet">
+		<script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+		<style>
+		body { margin: 0; padding: 0; }
+		#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+		</style>
+	</head>
+	<body>
+	<div id="map"></div>
+	<script>
+		// TO MAKE THE MA	P APPEAR YOU MUST
+		// ADD YOUR ACCESS TOKEN FROM
+		// https://account.mapbox.com
+		mapboxgl.accessToken = 'pk.eyJ1Ijoicm95YWxhZHZpc29yMjYiLCJhIjoiY2t1eTV0b3pkNWkwODMwcGhxcGI5YXg1MyJ9.Rp7mVqicDLnV_gRnKWa2JQ';
+	const map = new mapboxgl.Map({
+	container: 'map',
+	style: 'mapbox://styles/mapbox/streets-v11',
+	center: [-122.486052, 37.830348],   //[1.352100, 103.819800],    Singapore coords       //<----- CENTER NEEDS TO CHANGE ACCORDINGLY
+	zoom: 15
+	});
+	 
+	map.on('load', () => {
+	map.addSource('route', {
+	'type': 'geojson',
+	'data': {
+	'type': 'Feature',
+	'properties': {},                      
+	'geometry': {
+	'type': 'LineString',
+	'coordinates': 
+	{{coords}}                           //<------------- VARIABLE USED HERE, exchange {{my_coords}} with the list in the main.py at the bottom
+	}
+	}
+	});
+	map.addLayer({
+	'id': 'route',
+	'type': 'line',
+	'source': 'route',
+	'layout': {
+	'line-join': 'round',
+	'line-cap': 'round'
+	},
+	'paint': {
+	'line-color': '#888',
+	'line-width': 4
+	}
+	});
+	});
+	{% for i in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,60] %}							// <---- LIST OF INDEXES
+	var marker1 = new mapboxgl.Marker({ color: 'red'})
+	var coord_detail = {{coord_detail[i]}}
+		.setLngLat({{coords[i]}})     							 				// <------ EACH DIFFERNET COORD
+		
+		.setPopup(
+				new mapboxgl.Popup({ offset: 25 }) // add popups
+					.setHTML(
+						`<h5 style = "margin:0;">${coord_detail[0]}</h5><h5 style = "margin:0;">${coord_detail[1]}</h5><h5 style = "margin:0;">${coord_detail[2]}</h5><h5 style = "margin:0;">${coord_detail[3]}</h5><h5 style = "margin:0;">${coord_detail[4]}</h5>`   
+							)						
+						)	
+		.addTo(map);
+					
+	{% endfor %}
+	</script>
+	 
+	</body>
+</html>
